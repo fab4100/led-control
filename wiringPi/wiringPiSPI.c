@@ -113,7 +113,7 @@ int wiringPiSPISetupMode (int channel, int speed, int mode)
 
   if (ioctl (fd, SPI_IOC_WR_MODE, &mode)            < 0)
     return wiringPiFailure (WPI_ALMOST, "SPI Mode Change failure: %s\n", strerror (errno)) ;
-  
+
   if (ioctl (fd, SPI_IOC_WR_BITS_PER_WORD, &spiBPW) < 0)
     return wiringPiFailure (WPI_ALMOST, "SPI BPW Change failure: %s\n", strerror (errno)) ;
 

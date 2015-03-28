@@ -54,6 +54,10 @@ public:
         }
     }
 
+    /* TODO: (Sat 28 Mar 2015 08:06:21 PM CET) remove later */
+    uint8_t* data() { return led_array.data(); }
+    unsigned int datasize() { return led_array.datasize(); }
+
     /* TODO: (Sat 28 Mar 2015 05:50:36 PM CET) implement this */
     class iterator
     {
