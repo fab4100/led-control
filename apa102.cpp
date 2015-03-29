@@ -11,7 +11,6 @@ using namespace std;
 
 APA102::APA102(const unsigned int n) : n_led(n),
     nbits_start(32), nbits_end(32*(n/65 + 1)),
-    /* nbits_start(32), nbits_end(72), */
     rawdata((nbits_start/8 + n*sizeof(LED) + nbits_end/8), 0xff),
     leds((LED*)(&rawdata[0] + nbits_start/8))
 {
