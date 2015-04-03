@@ -29,8 +29,6 @@ VPATH := ./wiringPi
 .DEFAULT_GOAL := led++
 
 OBJECTS = main.o
-# led controller
-OBJECTS += led_spi_controller.o
 # apa102
 OBJECTS += apa102.o
 # wiringPI / SPI
