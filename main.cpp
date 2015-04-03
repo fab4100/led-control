@@ -119,6 +119,7 @@ int main(int argc, char *argv[])
     const int mode = parser("-mode").asInt(1);
     const int speed = parser("-speed").asInt(600*1000);
 
+    /* mycontroller myleds(Nleds, speed, channel, mode); */
     mycontroller myleds(Nleds, speed, channel, mode, SPI_DOWN);
 
     // run demo
