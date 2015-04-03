@@ -6,9 +6,12 @@
 #include <iostream>
 #include <cstdlib>
 #include <unistd.h>
+#include <vector>
 
 #include "wiringPi.h"
 #include "wiringPiSPI.h"
+
+enum SPI_INTERFACE {SPI_UP=0, SPI_DOWN};
 
 template <typename LED_Type>
 class led_spi_controller
@@ -24,18 +27,24 @@ public:
     led_spi_controller(const unsigned int n = 1,
             const int speed = 8000000,
             const int channel = 0,
-            const int mode = 0)
-    : led_array(n), spi_speed(speed), spi_channel(channel), spi_mode(mode)
+            const int mode = 0,
+            const SPI_INTERFACE spi_state = SPI_UP)
+    : led_array(n), spi_speed(speed), spi_channel(channel), spi_mode(mode), file_descriptor(-1)
     {
-        // set up wiringPi
-        wiringPiSetup();
-        // setup SPI
-        file_descriptor = wiringPiSPISetupMode(spi_channel, spi_speed, spi_mode);
-        if (file_descriptor < 0)
+        if (spi_state == SPI_UP)
         {
-            std::cerr << "Can not open SPI bus" << std::endl;
-            std::exit(EXIT_FAILURE);
+            // set up wiringPi
+            wiringPiSetup();
+            // setup SPI
+            file_descriptor = wiringPiSPISetupMode(spi_channel, spi_speed, spi_mode);
+            if (file_descriptor < 0)
+            {
+                std::cerr << "Can not open SPI bus" << std::endl;
+                std::exit(EXIT_FAILURE);
+            }
         }
+        else
+        {}
     }
 
     ~led_spi_controller() { close(file_descriptor); }
@@ -44,27 +53,67 @@ public:
     inline int mode() const { return spi_mode; }
     inline int speed() const { return spi_speed; }
 
-    inline unsigned int size() const { return led_array.size(); }
-    void set_led(const unsigned int i, const typename LED_Type::LED led) { led_array.set_led(i, led); }
     void update()
     {
-        if (wiringPiSPIDataRW(spi_channel, led_array.data(), led_array.datasize()) == -1)
+        // use a copy of raw data, because wiringPiSPIDataRW will likely
+        // overwrite but we want read-only behavior
+        std::vector<typename LED_Type::RAWTYPE> c(led_array.datasize(), 0);
+        const typename LED_Type::RAWTYPE* data = led_array.data();
+        for (unsigned int i=0; i < c.size(); ++i)
+            c[i] = *data++;
+
+        if (wiringPiSPIDataRW(spi_channel, &c[0], c.size()) == -1)
         {
             std::cerr << "SPI transmission failure!" << std::endl;
         }
     }
 
-    /* TODO: (Sat 28 Mar 2015 08:06:21 PM CET) remove later */
-    uint8_t* data() { return led_array.data(); }
-    unsigned int datasize() { return led_array.datasize(); }
+    void state() const
+    {
+        for (unsigned int i=0; i < led_array.size(); ++i)
+        {
+            std::cout << "{ ID = " << i << std::endl;
+            led_array[i].state();
+            std::cout << "}" << std::endl << std::endl;
+        }
+    }
 
-    /* TODO: (Sat 28 Mar 2015 05:50:36 PM CET) implement this */
+    inline unsigned int size() const { return led_array.size(); }
+    inline typename LED_Type::LED& operator[](const unsigned int i) { return led_array[i]; }
+    inline const typename LED_Type::LED& operator[](const unsigned int i) const { return led_array[i]; }
+
     class iterator
     {
         typename LED_Type::LED* cur;
         typename LED_Type::LED* end;
 
     public:
-        iterator(LED_Type& iterable) : cur(iterable.begin()), end(iterable.end()) {}
+        iterator(led_spi_controller<LED_Type>& iterable) : cur(iterable.led_array.begin()), end(iterable.led_array.end()) {}
+        iterator(const iterator& c) : cur(c.cur), end(c.end) {}
+
+        inline bool more() const { return (cur == end) ? false : true; }
+
+        // ++A
+        inline iterator& operator++() { ++cur; return *this; }
+
+        // A++
+        iterator operator++(int)
+        {
+            iterator tmp = *this;
+            ++cur;
+            return tmp;
+        }
+
+        iterator& operator=(const iterator& rhs)
+        {
+            cur = rhs.cur;
+            end = rhs.end;
+            return *this;
+        }
+
+        inline bool operator!=(const typename LED_Type::LED* const rhs) { return (cur == rhs) ? false : true; }
+        inline typename LED_Type::LED& operator*() { return *cur; }
+        inline const typename LED_Type::LED& operator*() const { return *cur; }
+        inline typename LED_Type::LED* operator->() { return cur; }
     };
 };

@@ -16,34 +16,14 @@
 using namespace std;
 
 typedef typename APA102::LED LED;
+typedef led_spi_controller<APA102> mycontroller;
+typedef mycontroller::iterator myiterator;
 
-float f(const float t, const unsigned int N)
-{
-    return 0.5*(sin(2*2*M_PI*t) + 1.0f)*N;
-}
 
-int R(int i, int N)
-{
-    if (i < (int)0.2*N) return 255;
-    else if (i >= (int)0.2*N && i < (int)0.4*N) 255 - (int)(255/0.2 * (float)i/N);
-    else return 0;
-}
-
-int G(int i, int N)
-{
-    if (i < (int)0.2*N) return 0;
-    else if (i >= (int)0.2*N && i < (int)0.4*N) (int)255/0.2 * ((float)i/N-0.2);
-    else if (i >= (int)0.4*N && i < (int)0.6*N) 255;
-    else if (i >= (int)0.6*N && i < (int)0.8*N) 255 - (int)(255/0.2 * (float)i*N);
-    else return 255;
-}
-
-int B(int i, int N)
-{
-    if (i < (int)0.6*N) return 0;
-    else if (i >= (int)0.6*N && i < (int)0.8*N) (int)255/0.2 * ((float)i/N-0.6);
-    else return 255;
-}
+/* float f(const float t, const unsigned int N) */
+/* { */
+/*     return 0.5*(sin(2*2*M_PI*t) + 1.0f)*N; */
+/* } */
 
 int main(int argc, char *argv[])
 {
@@ -57,10 +37,15 @@ int main(int argc, char *argv[])
     const int brightness = parser("-brightness").asInt(100);
     const int spread = parser("-spread").asInt(15);
 
-    led_spi_controller<APA102> myleds(Nleds, speed, channel, mode);
+    mycontroller myleds(Nleds, speed, channel, mode, SPI_DOWN);
+
+    myleds.state();
+
+    for (myiterator i=myleds; i.more(); ++i)
+        i->state();
 
     /* const unsigned int brightness = 100; */
-    const unsigned int wait = 1000000;
+    /* const unsigned int wait = 1000000; */
 
     /* for (unsigned int i=0; i<myleds.size(); ++i) */
     /* { */
@@ -137,18 +122,18 @@ int main(int argc, char *argv[])
     /*     usleep(50000); */
     /* } */
 
-    const LED red(brightness, 0xff0000);
-    const LED green(brightness, 0x00ff00);
-    const LED blue(brightness, 0x0000ff);
-    const LED white(brightness, 0xffffff);
-    const LED off(brightness, 0x000000);
+    /* const LED red(brightness, 0xff0000); */
+    /* const LED green(brightness, 0x00ff00); */
+    /* const LED blue(brightness, 0x0000ff); */
+    /* const LED white(brightness, 0xffffff); */
+    /* const LED off(brightness, 0x000000); */
 
-    for (unsigned int i=0; i<myleds.size(); ++i)
-    {
-        LED led(brightness, 0x000000);
-        myleds.set_led(i, led);
-    }
-    myleds.update();
+    /* for (unsigned int i=0; i<myleds.size(); ++i) */
+    /* { */
+    /*     /1* LED led(brightness, 0x000000); *1/ */
+    /*     /1* myleds.set_led(i, led); *1/ */
+    /* } */
+    /* myleds.update(); */
 
     /* for (unsigned int j=0; j<myleds.size(); ++j) */
     /* { */
@@ -160,28 +145,28 @@ int main(int argc, char *argv[])
     /*     myleds.update(); */
     /*     usleep(2000); */
     /* } */
-    float t = 0;
-    const float dt = 0.001;
-    /* const int spread = 15; */
-    int k = 0;
+    /* float t = 0; */
+    /* const float dt = 0.001; */
+    /* /1* const int spread = 15; *1/ */
+    /* int k = 0; */
 
-    while (true)
-    {
-        /* int j = f(t, Nleds); */
-        int j = k%Nleds;
-        for (int i=0; i<myleds.size(); ++i)
-            myleds.set_led(i, off);
-        for (int s=k-spread; s<=k+spread; ++s)
-            {
-                /* LED led(brightness, k%256, k%256, k%256); */
-                myleds.set_led(s%Nleds, white);
-                /* myleds.set_led(s%Nleds, led); */
-            }
-        myleds.update();
-        usleep((int)dt*1000000);
-        ++k;
-        t += dt;
-    }
+    /* while (true) */
+    /* { */
+    /*     /1* int j = f(t, Nleds); *1/ */
+    /*     /1* int j = k%Nleds; *1/ */
+    /*     /1* for (int i=0; i<myleds.size(); ++i) *1/ */
+    /*     /1*     myleds.set_led(i, off); *1/ */
+    /*     /1* for (int s=k-spread; s<=k+spread; ++s) *1/ */
+    /*     /1*     { *1/ */
+    /*     /1*         /2* LED led(brightness, k%256, k%256, k%256); *2/ *1/ */
+    /*     /1*         myleds.set_led(s%Nleds, white); *1/ */
+    /*     /1*         /2* myleds.set_led(s%Nleds, led); *2/ *1/ */
+    /*     /1*     } *1/ */
+    /*     myleds.update(); */
+    /*     usleep((int)dt*1000000); */
+    /*     ++k; */
+    /*     t += dt; */
+    /* } */
 
 
 

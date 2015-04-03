@@ -23,7 +23,7 @@ APA102::~APA102()
 }
 
 // LED implementation
-APA102::LED::LED(const unsigned int bright, const uint8_t red, const uint8_t green, const uint8_t blue)
+APA102::LED::LED(const unsigned int bright, const RAWTYPE red, const RAWTYPE green, const RAWTYPE blue)
     : brightness(0xe0), B(blue), G(green), R(red)
 {
     // bright in percent
@@ -31,7 +31,7 @@ APA102::LED::LED(const unsigned int bright, const uint8_t red, const uint8_t gre
     else set_brightness(bright);
 }
 
-APA102::LED::LED(const uint8_t red, const uint8_t green, const uint8_t blue)
+APA102::LED::LED(const RAWTYPE red, const RAWTYPE green, const RAWTYPE blue)
     : brightness(0xff), B(blue), G(green), R(red)
 {
 }
@@ -51,21 +51,22 @@ APA102::LED::LED(const unsigned int color)
 
 void APA102::LED::increase_brightness()
 {
-    uint8_t cur_bright = brightness & 0x1f;
+    RAWTYPE cur_bright = brightness & 0x1f;
     if (cur_bright < 31) ++cur_bright;
     brightness = 0xe0 + cur_bright;
 }
 
 void APA102::LED::decrease_brightness()
 {
-    uint8_t cur_bright = brightness & 0x1f;
+    RAWTYPE cur_bright = brightness & 0x1f;
     if (cur_bright > 0) --cur_bright;
     brightness = 0xe0 + cur_bright;
 }
 
 void APA102::LED::state() const
 {
-    printf("Brightness: %.1f%%\n", static_cast<float>(brightness & 0x1f)/31.0f*100.0f);
+    printf("Brightness: %.1f%% ", static_cast<float>(brightness & 0x1f)/31.0f*100.0f);
+    printf("(Level %i)\n", brightness & 0x1f);
     printf("Red:        %i\n", R);
     printf("Green:      %i\n", G);
     printf("Blue:       %i\n", B);
