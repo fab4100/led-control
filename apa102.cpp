@@ -23,6 +23,8 @@ APA102::~APA102()
 }
 
 // LED implementation
+APA102::LED::LED() : brightness(0xff), B(0xff), G(0xff), R(0xff) {}
+
 APA102::LED::LED(const unsigned int bright, const RAWTYPE red, const RAWTYPE green, const RAWTYPE blue)
     : brightness(0xe0), B(blue), G(green), R(red)
 {

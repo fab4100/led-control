@@ -89,6 +89,7 @@ public:
 
     public:
         iterator(led_spi_controller<LED_Type>& iterable) : cur(iterable.led_array.begin()), end(iterable.led_array.end()) {}
+        iterator(LED_Type& iterable) : cur(iterable.begin()), end(iterable.end()) {}
         iterator(const iterator& c) : cur(c.cur), end(c.end) {}
 
         inline bool more() const { return (cur == end) ? false : true; }
@@ -116,4 +117,45 @@ public:
         inline const typename LED_Type::LED& operator*() const { return *cur; }
         inline typename LED_Type::LED* operator->() { return cur; }
     };
+
+    // handy shortcuts
+    void all_white()
+    {
+        const typename LED_Type::LED white(255, 255, 255);
+        for (iterator i = led_array; i.more(); ++i)
+            *i = white;
+    }
+
+    void all_black()
+    {
+        const typename LED_Type::LED black(0, 0, 0);
+        for (iterator i = led_array; i.more(); ++i)
+            *i = black;
+    }
+
+    void all_color(const unsigned int red, const unsigned int green, const unsigned int blue)
+    {
+        const typename LED_Type::LED color(red, green, blue);
+        for (iterator i = led_array; i.more(); ++i)
+            *i = color;
+    }
+
+    void all_color(const unsigned int hex_color)
+    {
+        const typename LED_Type::LED color(hex_color);
+        for (iterator i = led_array; i.more(); ++i)
+            *i = color;
+    }
+
+    inline void all_brightness(const unsigned int bright_percent)
+    {
+        for (iterator i = led_array; i.more(); ++i)
+            i->set_brightness(bright_percent);
+    }
+
+    inline void all_brightness31(const unsigned int bright31)
+    {
+        for (iterator i = led_array; i.more(); ++i)
+            i->set_brightness31(bright31);
+    }
 };

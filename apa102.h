@@ -17,6 +17,8 @@ public:
     {
         // order matters here, defined by APA102 datasheet
         RAWTYPE brightness, B, G, R;
+        // default
+        LED();
         // color 3-tuples
         LED(const unsigned int bright, const RAWTYPE red, const RAWTYPE green, const RAWTYPE blue);
         LED(const RAWTYPE red, const RAWTYPE green, const RAWTYPE blue);
@@ -29,7 +31,7 @@ public:
             brightness = 0xe0 + static_cast<RAWTYPE>(bright/100.0f * 31.0f);
         }
 
-        inline void set_brightness_31(const unsigned int bright31)
+        inline void set_brightness31(const unsigned int bright31)
         {
             brightness = 0xe0 + bright31;
         }

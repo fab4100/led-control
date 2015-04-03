@@ -4,6 +4,8 @@
 /* Tag:    Main application */
 /* Copyright 2015 Fabian Wermelinger. All Rights Reserved. */
 #include <iostream>
+#include <string>
+#include <map>
 #include <unistd.h>
 #include <cstdlib>
 #include <time.h>
@@ -20,6 +22,89 @@ typedef led_spi_controller<APA102> mycontroller;
 typedef mycontroller::iterator myiterator;
 
 
+void default_demo(mycontroller& leds, ArgumentParser& parser)
+{
+    leds.all_black();
+    LED colors[4];
+    colors[0] = LED(0xffffff); // white
+    colors[1] = LED(0xff0000); // red
+    colors[2] = LED(0x00ff00); // green
+    colors[3] = LED(0x0000ff); // blue
+
+    const unsigned int wait_ms = parser("-wait_ms").asInt(20);
+    unsigned int k = 0;
+
+    while (true)
+    {
+        for (unsigned int i=0; i < leds.size(); ++i)
+        {
+            leds[i] = colors[k%4];
+            leds.update();
+            usleep(wait_ms * 1000);
+        }
+        ++k;
+
+        for (unsigned int i=leds.size()-1; i >= 0; --i)
+        {
+            leds[i] = colors[k%4];
+            leds.update();
+            usleep(wait_ms * 1000);
+        }
+        ++k;
+    }
+}
+
+void random_lights(mycontroller& leds, ArgumentParser& parser)
+{
+    srand(time(NULL));
+
+    const unsigned int wait_ms = parser("-wait_ms").asInt(60);
+    while (true)
+    {
+        for (myiterator i=leds; i.more(); ++i)
+        {
+            const LED rand_led(rand()%256, rand()%256, rand()%256);
+            *i = rand_led;
+        }
+        leds.update();
+        usleep(wait_ms * 1000);
+    }
+}
+
+void brightness(mycontroller& leds, ArgumentParser& parser)
+{
+    leds.all_black();
+    unsigned int colors[4] = {0xffffff, 0xff0000, 0x00ff00, 0x0000ff};
+
+    const unsigned int wait_ms = parser("-wait_ms").asInt(60);
+    unsigned int k = 0;
+
+    while (true)
+    {
+        for (myiterator i=leds; i.more(); ++i)
+            i->set_color(colors[k%4]);
+        ++k;
+        for (unsigned int b=0; b < 32; ++b)
+        {
+            for (myiterator i=leds; i.more(); ++i)
+                i->set_brightness31(b);
+            leds.update();
+            usleep(wait_ms * 1000);
+        }
+        for (unsigned int b=30; b >= 0; --b)
+        {
+            for (myiterator i=leds; i.more(); ++i)
+                i->set_brightness31(b);
+            leds.update();
+            usleep(wait_ms * 1000);
+        }
+    }
+}
+
+void cycle(mycontroller& leds, ArgumentParser& parser)
+{
+}
+
 /* float f(const float t, const unsigned int N) */
 /* { */
 /*     return 0.5*(sin(2*2*M_PI*t) + 1.0f)*N; */
@@ -34,15 +119,30 @@ int main(int argc, char *argv[])
     const int mode = parser("-mode").asInt(1);
     const int speed = parser("-speed").asInt(600*1000);
 
-    const int brightness = parser("-brightness").asInt(100);
-    const int spread = parser("-spread").asInt(15);
-
     mycontroller myleds(Nleds, speed, channel, mode, SPI_DOWN);
 
-    myleds.state();
+    // run demo
+    const string demo = parser("-demo").asString("default");
+    if (demo == "random_lights") random_lights(myleds, parser);
+    else if (demo == "brightness") brightness(myleds, parser);
+    else if (demo == "cycle") cycle(myleds, parser);
+    else if (demo == "default") default_demo(myleds, parser);
+    else
+    {
+        cerr << "Unknown demo \"" << demo << "\"" << endl;
+        exit(EXIT_FAILURE);
+    }
 
-    for (myiterator i=myleds; i.more(); ++i)
-        i->state();
+
+    /* const int brightness = parser("-brightness").asInt(100); */
+    /* const int spread = parser("-spread").asInt(15); */
+
+
+    /* myleds.all_color(0xff0000); */
+    /* myleds.all_brightness31(12); */
+
+    /* myleds.state(); */
+
 
     /* const unsigned int brightness = 100; */
     /* const unsigned int wait = 1000000; */
