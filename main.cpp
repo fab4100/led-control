@@ -103,6 +103,7 @@ void brightness(mycontroller& leds, ArgumentParser& parser)
 
 void cycle(mycontroller& leds, ArgumentParser& parser)
 {
+
 }
 
 /* float f(const float t, const unsigned int N) */
